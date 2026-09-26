@@ -62,3 +62,24 @@ exports.getSummary = async (req, res) => {
     res.status(500).json({ message: 'Error fetching dashboard summary.' });
   }
 };
+
+// GET /api/dashboard/low-stock -> products at or below their reorder minimum,
+// lowest stock first, for the Dashboard's "Low Stock" widget.
+exports.getLowStock = async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT p.id, p.sku, p.name, p.reorder_min,
+             COALESCE(SUM(s.qty_on_hand), 0) AS on_hand
+      FROM products p
+      LEFT JOIN stock s ON s.product_id = p.id
+      GROUP BY p.id
+      HAVING on_hand <= p.reorder_min
+      ORDER BY on_hand ASC
+      LIMIT 10
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching low stock products.' });
+  }
+};

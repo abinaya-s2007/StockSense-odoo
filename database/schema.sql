@@ -200,3 +200,22 @@ INSERT INTO warehouses (name, short_code, address) VALUES ('Main Warehouse', 'WH
 INSERT INTO locations (warehouse_id, name, short_code) VALUES
     (1, 'Stock 1', 'WH/Stock1'),
     (1, 'Stock 2', 'WH/Stock2');
+
+-- ---------------------------------------------------------
+-- Seed: sample products + opening stock so Product dropdowns
+-- (Receipts, Deliveries, Transfers, Adjustments) are populated
+-- out of the box instead of showing an empty list.
+-- ---------------------------------------------------------
+INSERT INTO products (sku, name, category, uom, per_unit_cost, reorder_min) VALUES
+    ('DESK001', 'Office Desk',      'Furniture',  'Unit', 4500.00, 5),
+    ('CHAIR01', 'Ergonomic Chair',  'Furniture',  'Unit', 3200.00, 5),
+    ('LAP001',  'Laptop 14-inch',   'Electronics','Unit', 55000.00, 3),
+    ('MON001',  'Monitor 24-inch',  'Electronics','Unit', 9500.00, 4),
+    ('STA001',  'A4 Paper Ream',    'Stationery', 'Unit', 250.00, 20);
+
+INSERT INTO stock (product_id, location_id, qty_on_hand, qty_reserved) VALUES
+    (1, 1, 20, 0),
+    (2, 1, 30, 0),
+    (3, 2, 15, 0),
+    (4, 2, 25, 0),
+    (5, 1, 100, 0);
