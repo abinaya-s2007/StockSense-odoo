@@ -18,18 +18,22 @@ export default function Dashboard() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-slate-100">Dashboard</h1>
-        <p className="text-sm text-slate-400">Current snapshot of your inventory operations.</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-100">Dashboard</h1>
+          <p className="text-sm text-slate-400">Current snapshot of your inventory operations.</p>
+        </div>
+        <Link to="/analytics" className="btn-ghost">View Analytics</Link>
       </div>
 
       {error && <p className="text-danger text-sm mb-4">{error}</p>}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         <KpiCard label="Total Products" value={data?.total_products ?? '—'} />
         <KpiCard label="Low / Out of Stock" value={data?.low_stock_items ?? '—'} accent="warn" />
         <KpiCard label="Pending Receipts" value={data?.pending_receipts ?? '—'} accent="accent" />
         <KpiCard label="Pending Deliveries" value={data?.pending_deliveries ?? '—'} accent="accent2" />
+        <KpiCard label="Scheduled Transfers" value={data?.scheduled_transfers ?? '—'} accent="accent" />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">

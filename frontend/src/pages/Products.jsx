@@ -60,6 +60,16 @@ export default function Products() {
     }
   }
 
+  async function handleDelete(p) {
+    if (!window.confirm(`Delete "${p.name}"? This cannot be undone.`)) return;
+    try {
+      await api.delete(`/products/${p.id}`);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not delete product.');
+    }
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -142,11 +152,12 @@ export default function Products() {
               <th>Per Unit Cost</th>
               <th>On Hand</th>
               <th>Free to Use</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
             {filteredProducts.map((p) => (
-              <tr key={p.id} className="cursor-pointer hover:bg-white/5">
+              <tr key={p.id} className="hover:bg-white/5">
                 <td className="font-mono text-slate-400">
                   <Link to={`/products/${p.id}`} className="text-accent">{p.sku}</Link>
                 </td>
@@ -159,10 +170,13 @@ export default function Products() {
                 <td className={Number(p.free_to_use) <= (p.reorder_min || 0) ? 'text-danger font-medium' : 'text-accent2 font-medium'}>
                   {p.free_to_use}
                 </td>
+                <td>
+                  <button onClick={() => handleDelete(p)} className="text-danger text-sm hover:underline">Delete</button>
+                </td>
               </tr>
             ))}
             {filteredProducts.length === 0 && (
-              <tr><td colSpan={6} className="text-center text-slate-500 py-6">
+              <tr><td colSpan={7} className="text-center text-slate-500 py-6">
                 {products.length === 0 ? 'No products yet. Create your first product.' : 'No products match your search.'}
               </td></tr>
             )}

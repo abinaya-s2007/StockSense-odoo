@@ -16,6 +16,7 @@ import DeliveryForm from './pages/DeliveryForm.jsx';
 import Transfers from './pages/Transfers.jsx';
 import Adjustments from './pages/Adjustments.jsx';
 import MoveHistory from './pages/MoveHistory.jsx';
+import Analytics from './pages/Analytics.jsx';
 import Warehouses from './pages/Settings/Warehouses.jsx';
 import Locations from './pages/Settings/Locations.jsx';
 
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/operations/transfers" element={<Transfers />} />
           <Route path="/operations/adjustments" element={<Adjustments />} />
           <Route path="/move-history" element={<MoveHistory />} />
+          <Route path="/analytics" element={<Analytics />} />
           <Route path="/settings/warehouses" element={<Warehouses />} />
           <Route path="/settings/locations" element={<Locations />} />
         </Route>

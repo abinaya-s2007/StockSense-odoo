@@ -65,6 +65,7 @@ export default function Navbar() {
 
             <NavLink to="/products" className={navLinkClass}>Products</NavLink>
             <NavLink to="/move-history" className={navLinkClass}>Move History</NavLink>
+            <NavLink to="/analytics" className={navLinkClass}>Analytics</NavLink>
 
             <div className="relative" ref={settings.ref}>
               <button

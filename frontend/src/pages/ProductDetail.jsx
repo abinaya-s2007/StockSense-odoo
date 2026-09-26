@@ -1,17 +1,61 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../api/axios.js';
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [error, setError] = useState('');
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState(null);
+  const [saveError, setSaveError] = useState('');
 
-  useEffect(() => {
+  function load() {
     api.get(`/products/${id}`)
       .then((res) => setProduct(res.data))
       .catch(() => setError('Could not load this product.'));
-  }, [id]);
+  }
+
+  useEffect(load, [id]);
+
+  function startEdit() {
+    setSaveError('');
+    setEditForm({
+      name: product.name,
+      category: product.category || '',
+      uom: product.uom,
+      per_unit_cost: product.per_unit_cost,
+      reorder_min: product.reorder_min
+    });
+    setEditing(true);
+  }
+
+  function updateEditField(field, value) {
+    setEditForm((f) => ({ ...f, [field]: value }));
+  }
+
+  async function saveEdit(e) {
+    e.preventDefault();
+    setSaveError('');
+    try {
+      await api.put(`/products/${id}`, editForm);
+      setEditing(false);
+      load();
+    } catch (err) {
+      setSaveError(err.response?.data?.message || 'Could not update product.');
+    }
+  }
+
+  async function handleDelete() {
+    if (!window.confirm(`Delete "${product.name}"? This cannot be undone.`)) return;
+    try {
+      await api.delete(`/products/${id}`);
+      navigate('/products');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not delete product.');
+    }
+  }
 
   if (error) {
     return (
@@ -40,7 +84,42 @@ export default function ProductDetail() {
           <h1 className="text-xl font-semibold text-slate-100">[{product.sku}] {product.name}</h1>
           <p className="text-sm text-slate-400">{product.category || 'Uncategorized'} · {product.uom}</p>
         </div>
+        <div className="flex items-center gap-3">
+          <button className="btn-ghost" onClick={() => (editing ? setEditing(false) : startEdit())}>
+            {editing ? 'Cancel' : 'Edit'}
+          </button>
+          <button className="btn-danger" onClick={handleDelete}>Delete</button>
+        </div>
       </div>
+
+      {editing && (
+        <form onSubmit={saveEdit} className="card p-6 mb-6 grid md:grid-cols-3 gap-4">
+          <div>
+            <label className="label">Name</label>
+            <input className="input" value={editForm.name} onChange={(e) => updateEditField('name', e.target.value)} required />
+          </div>
+          <div>
+            <label className="label">Category</label>
+            <input className="input" value={editForm.category} onChange={(e) => updateEditField('category', e.target.value)} />
+          </div>
+          <div>
+            <label className="label">Unit of Measure</label>
+            <input className="input" value={editForm.uom} onChange={(e) => updateEditField('uom', e.target.value)} />
+          </div>
+          <div>
+            <label className="label">Per Unit Cost (Rs)</label>
+            <input type="number" step="0.01" className="input" value={editForm.per_unit_cost} onChange={(e) => updateEditField('per_unit_cost', e.target.value)} />
+          </div>
+          <div>
+            <label className="label">Reorder Minimum</label>
+            <input type="number" className="input" value={editForm.reorder_min} onChange={(e) => updateEditField('reorder_min', e.target.value)} />
+          </div>
+          <div className="md:col-span-3 flex items-center gap-4">
+            <button type="submit" className="btn-primary">Save Changes</button>
+            {saveError && <p className="text-sm text-danger">{saveError}</p>}
+          </div>
+        </form>
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="card p-5">
@@ -62,10 +141,16 @@ export default function ProductDetail() {
       </div>
 
       {isLow && (
-        <div className="card p-4 mb-6 border-danger/40 bg-danger/10">
+        <div className="card p-4 mb-6 border-danger/40 bg-danger/10 flex items-center justify-between gap-4">
           <p className="text-sm text-danger">
-            Free-to-use stock ({totalFree}) is at or below the reorder minimum ({product.reorder_min}). Consider creating a Receipt to restock.
+            Free-to-use stock ({totalFree}) is at or below the reorder minimum ({product.reorder_min}).
           </p>
+          <Link
+            to={`/operations/receipts/new?product_id=${product.id}&qty=${Math.max(product.reorder_min, 1)}`}
+            className="btn-primary whitespace-nowrap"
+          >
+            Create Receipt
+          </Link>
         </div>
       )}
 

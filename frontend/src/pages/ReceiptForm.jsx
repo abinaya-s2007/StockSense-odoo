@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import StatusPill from '../components/StatusPill.jsx';
 
@@ -9,6 +9,7 @@ export default function ReceiptForm() {
   const { id } = useParams();
   const isNew = id === 'new';
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [receipt, setReceipt] = useState(null);
   const [locations, setLocations] = useState([]);
@@ -20,7 +21,18 @@ export default function ReceiptForm() {
   useEffect(() => {
     api.get('/settings/locations').then((res) => setLocations(res.data));
     api.get('/products').then((res) => setProducts(res.data));
-    if (!isNew) loadReceipt();
+    if (!isNew) {
+      loadReceipt();
+    } else {
+      // Support arriving here from a "Create Receipt" quick-reorder link
+      // (e.g. /operations/receipts/new?product_id=3&qty=10) so the line
+      // is pre-filled instead of the user having to look the product up again.
+      const prefillProduct = searchParams.get('product_id');
+      const prefillQty = searchParams.get('qty');
+      if (prefillProduct) {
+        setLines([{ product_id: prefillProduct, quantity: prefillQty ? Number(prefillQty) : 1 }]);
+      }
+    }
   }, [id]);
 
   function loadReceipt() {
