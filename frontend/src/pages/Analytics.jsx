@@ -4,6 +4,7 @@ import api from '../api/axios.js';
 import { downloadCSV } from '../utils/csv.js';
 import TrendChart from '../components/charts/TrendChart.jsx';
 import BarList from '../components/charts/BarList.jsx';
+import DonutChart from '../components/charts/DonutChart.jsx';
 
 const RANGE_OPTIONS = [
   { value: 'today', label: 'Today' },
@@ -111,6 +112,31 @@ export default function Analytics() {
       .map((p) => ({ label: `[${p.sku}] ${p.name}`, value: Number(p.total_movement), sub: p.uom })),
     [products]
   );
+
+  // ---- Transaction Mix donut: proportion of ledger volume by type, for the
+  // current filters/range (built entirely from the summary already fetched) ----
+  const transactionMix = useMemo(() => {
+    if (!summary) return [];
+    return [
+      { label: 'Incoming (Receipts)', value: Number(summary.received) },
+      { label: 'Outgoing (Deliveries)', value: Number(summary.outgoing) },
+      { label: 'Internal Transfers', value: Number(summary.internal_moved) },
+      { label: 'Adjustments', value: Number(summary.adjustment_abs) }
+    ];
+  }, [summary]);
+
+  // ---- Stock by Category donut: current stock grouped by category, from the
+  // product-wise analysis already fetched (no extra request needed) ----
+  const stockByCategory = useMemo(() => {
+    const totals = new Map();
+    for (const p of products) {
+      const key = p.category || 'Uncategorized';
+      totals.set(key, (totals.get(key) || 0) + Number(p.current_stock));
+    }
+    return [...totals.entries()]
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [products]);
 
   const sortedProducts = useMemo(() => {
     const list = [...products];
@@ -321,6 +347,18 @@ export default function Analytics() {
               </table>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* ---- Transaction mix & stock-by-category donuts ---- */}
+      <div className="grid md:grid-cols-2 gap-6 mb-6">
+        <div className="card p-6">
+          <h2 className="font-semibold text-slate-100 mb-4">Transaction Mix</h2>
+          {loading ? <p className="text-sm text-slate-500 py-10 text-center">Loading…</p> : <DonutChart segments={transactionMix} centerSub="Total Volume" />}
+        </div>
+        <div className="card p-6">
+          <h2 className="font-semibold text-slate-100 mb-4">Current Stock by Category</h2>
+          {loading ? <p className="text-sm text-slate-500 py-10 text-center">Loading…</p> : <DonutChart segments={stockByCategory} centerSub="Units on Hand" />}
         </div>
       </div>
 
