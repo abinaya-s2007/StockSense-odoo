@@ -4,12 +4,16 @@ import api from '../api/axios.js';
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
+  const [lowStock, setLowStock] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
     api.get('/dashboard')
       .then((res) => setData(res.data))
       .catch(() => setError('Could not load dashboard data.'));
+    api.get('/dashboard/low-stock')
+      .then((res) => setLowStock(res.data))
+      .catch(() => {});
   }, []);
 
   return (
@@ -57,6 +61,35 @@ export default function Dashboard() {
             <span><span className="text-accent font-medium">{data?.delivery?.operations ?? 0}</span> Operations</span>
           </div>
         </Link>
+      </div>
+
+      <div className="card p-6 mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-slate-100">Low Stock</h2>
+          <Link to="/products" className="text-sm text-accent hover:underline">View all products</Link>
+        </div>
+        {lowStock.length === 0 ? (
+          <p className="text-sm text-slate-500">Nothing is low on stock right now.</p>
+        ) : (
+          <table className="table-base">
+            <thead>
+              <tr><th>Product</th><th>On Hand</th><th>Reorder Minimum</th></tr>
+            </thead>
+            <tbody>
+              {lowStock.map((p) => (
+                <tr key={p.id}>
+                  <td>
+                    <Link to={`/products/${p.id}`} className="text-accent">[{p.sku}] {p.name}</Link>
+                  </td>
+                  <td className={Number(p.on_hand) <= 0 ? 'text-danger font-medium' : 'text-warn font-medium'}>
+                    {p.on_hand}
+                  </td>
+                  <td className="text-slate-400">{p.reorder_min}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

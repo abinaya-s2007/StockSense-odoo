@@ -8,6 +8,7 @@ import Signup from './pages/Signup.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Products from './pages/Products.jsx';
+import ProductDetail from './pages/ProductDetail.jsx';
 import Receipts from './pages/Receipts.jsx';
 import ReceiptForm from './pages/ReceiptForm.jsx';
 import Deliveries from './pages/Deliveries.jsx';
@@ -29,6 +30,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/operations/receipts" element={<Receipts />} />
           <Route path="/operations/receipts/:id" element={<ReceiptForm />} />
           <Route path="/operations/deliveries" element={<Deliveries />} />

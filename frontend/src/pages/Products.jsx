@@ -1,15 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../api/axios.js';
+import { downloadCSV } from '../utils/csv.js';
 
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [locations, setLocations] = useState([]);
+  const [search, setSearch] = useState('');
   const [form, setForm] = useState({
     sku: '', name: '', category: '', uom: 'Unit', per_unit_cost: '', reorder_min: '',
     initial_stock: '', location_id: ''
   });
   const [error, setError] = useState('');
+
+  const filteredProducts = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter((p) =>
+      p.sku.toLowerCase().includes(q) ||
+      p.name.toLowerCase().includes(q) ||
+      (p.category || '').toLowerCase().includes(q)
+    );
+  }, [products, search]);
+
+  function exportCSV() {
+    downloadCSV('products.csv', filteredProducts, [
+      { key: 'sku', label: 'SKU' },
+      { key: 'name', label: 'Name' },
+      { key: 'category', label: 'Category' },
+      { key: 'per_unit_cost', label: 'Per Unit Cost' },
+      { key: 'on_hand', label: 'On Hand' },
+      { key: 'free_to_use', label: 'Free to Use' },
+      { key: 'reorder_min', label: 'Reorder Minimum' }
+    ]);
+  }
 
   function load() {
     api.get('/products').then((res) => setProducts(res.data));
@@ -42,9 +67,14 @@ export default function Products() {
           <h1 className="text-xl font-semibold text-slate-100">Products</h1>
           <p className="text-sm text-slate-400">Stock availability per location.</p>
         </div>
-        <button className="btn-primary" onClick={() => setShowForm((v) => !v)}>
-          {showForm ? 'Cancel' : 'New Product'}
-        </button>
+        <div className="flex items-center gap-3">
+          <button className="btn-ghost" onClick={exportCSV} disabled={filteredProducts.length === 0}>
+            Export CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowForm((v) => !v)}>
+            {showForm ? 'Cancel' : 'New Product'}
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -93,6 +123,15 @@ export default function Products() {
         </form>
       )}
 
+      <div className="mb-4">
+        <input
+          className="input max-w-xs"
+          placeholder="Search by SKU, name or category…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
       <div className="card p-6 overflow-x-auto">
         <table className="table-base">
           <thead>
@@ -106,10 +145,14 @@ export default function Products() {
             </tr>
           </thead>
           <tbody>
-            {products.map((p) => (
-              <tr key={p.id}>
-                <td className="font-mono text-slate-400">{p.sku}</td>
-                <td className="text-slate-100">{p.name}</td>
+            {filteredProducts.map((p) => (
+              <tr key={p.id} className="cursor-pointer hover:bg-white/5">
+                <td className="font-mono text-slate-400">
+                  <Link to={`/products/${p.id}`} className="text-accent">{p.sku}</Link>
+                </td>
+                <td className="text-slate-100">
+                  <Link to={`/products/${p.id}`}>{p.name}</Link>
+                </td>
                 <td className="text-slate-400">{p.category || '—'}</td>
                 <td className="text-slate-300">{Number(p.per_unit_cost).toLocaleString()} Rs</td>
                 <td className="text-slate-300">{p.on_hand}</td>
@@ -118,8 +161,10 @@ export default function Products() {
                 </td>
               </tr>
             ))}
-            {products.length === 0 && (
-              <tr><td colSpan={6} className="text-center text-slate-500 py-6">No products yet. Create your first product.</td></tr>
+            {filteredProducts.length === 0 && (
+              <tr><td colSpan={6} className="text-center text-slate-500 py-6">
+                {products.length === 0 ? 'No products yet. Create your first product.' : 'No products match your search.'}
+              </td></tr>
             )}
           </tbody>
         </table>

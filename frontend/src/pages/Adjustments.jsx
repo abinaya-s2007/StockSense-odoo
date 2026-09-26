@@ -8,6 +8,7 @@ export default function Adjustments() {
   const [form, setForm] = useState({ product_id: '', location_id: '', counted_qty: '', reason: '' });
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [recordedQty, setRecordedQty] = useState(null);
 
   function load() {
     api.get('/adjustments').then((res) => setAdjustments(res.data));
@@ -15,6 +16,23 @@ export default function Adjustments() {
     api.get('/settings/locations').then((res) => setLocations(res.data));
   }
   useEffect(load, []);
+
+  // Show the currently recorded quantity for the chosen product/location so
+  // the user has something to compare their physical count against before
+  // submitting - the backend computes the same value when saving.
+  useEffect(() => {
+    if (!form.product_id || !form.location_id) {
+      setRecordedQty(null);
+      return;
+    }
+    let cancelled = false;
+    api.get(`/products/${form.product_id}`).then((res) => {
+      if (cancelled) return;
+      const match = res.data.stock_by_location.find((s) => String(s.location_id) === String(form.location_id));
+      setRecordedQty(match ? Number(match.qty_on_hand) : 0);
+    }).catch(() => setRecordedQty(null));
+    return () => { cancelled = true; };
+  }, [form.product_id, form.location_id]);
 
   function update(field, value) { setForm((f) => ({ ...f, [field]: value })); }
 
@@ -57,6 +75,9 @@ export default function Adjustments() {
         <div>
           <label className="label">Counted Quantity</label>
           <input type="number" className="input" value={form.counted_qty} onChange={(e) => update('counted_qty', e.target.value)} required />
+          {recordedQty !== null && (
+            <p className="text-xs text-slate-500 mt-1">Currently recorded: {recordedQty}</p>
+          )}
         </div>
         <div>
           <label className="label">Reason (optional)</label>

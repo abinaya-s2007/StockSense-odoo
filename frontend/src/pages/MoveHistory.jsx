@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios.js';
+import { downloadCSV } from '../utils/csv.js';
 
 const typeColor = {
   in: 'text-accent2',
@@ -18,11 +19,27 @@ export default function MoveHistory() {
   }
   useEffect(load, [search, type]);
 
+  function exportCSV() {
+    downloadCSV('move-history.csv', moves, [
+      { key: 'reference', label: 'Reference' },
+      { key: 'move_date', label: 'Date' },
+      { key: 'sku', label: 'SKU' },
+      { key: 'product_name', label: 'Product' },
+      { key: 'from_label', label: 'From' },
+      { key: 'to_label', label: 'To' },
+      { key: 'quantity', label: 'Quantity' },
+      { key: 'status', label: 'Status' }
+    ]);
+  }
+
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-slate-100">Move History</h1>
-        <p className="text-sm text-slate-400">Every stock movement between locations, logged in the ledger.</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-100">Move History</h1>
+          <p className="text-sm text-slate-400">Every stock movement between locations, logged in the ledger.</p>
+        </div>
+        <button className="btn-ghost" onClick={exportCSV} disabled={moves.length === 0}>Export CSV</button>
       </div>
 
       <div className="flex gap-4 mb-4">
