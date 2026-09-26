@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-ink text-slate-200 font-sans;
+}
+
+.card {
+  @apply bg-panel border border-line rounded-lg;
+}
+
+.btn {
+  @apply px-4 py-2 rounded-md text-sm font-medium transition-colors;
+}
+.btn-primary {
+  @apply btn bg-accent text-ink hover:bg-sky-400;
+}
+.btn-ghost {
+  @apply btn border border-line text-slate-300 hover:bg-white/5;
+}
+.btn-danger {
+  @apply btn bg-danger/90 text-white hover:bg-danger;
+}
+
+.input {
+  @apply w-full bg-ink border border-line rounded-md px-3 py-2 text-sm text-slate-100
+         placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-accent/60;
+}
+
+.label {
+  @apply text-xs uppercase tracking-wide text-slate-400 mb-1 block;
+}
+
+.table-base {
+  @apply w-full text-sm text-left;
+}
+.table-base th {
+  @apply text-slate-400 font-medium text-xs uppercase tracking-wide pb-3 border-b border-line;
+}
+.table-base td {
+  @apply py-3 border-b border-line/60;
+}
+
+.status-pill {
+  @apply inline-block px-2.5 py-1 rounded-full text-xs font-medium;
+}
